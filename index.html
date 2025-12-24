@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><title>Ani's Musical Spirograph (obf)</title>
+<style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#111;color:#eee;display:flex;gap:20px;padding:20px}canvas{background:#000;flex-shrink:0}.controls{min-width:220px}label{display:block;margin-top:12px;font-size:14px}input{width:100%}button{margin-top:16px;width:100%;padding:8px;background:#4caf50;border:none;color:black;font-weight:700;cursor:pointer}.control-row{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:14px}.control-row input[type=radio],.control-row input[type=checkbox]{width:auto;margin:0}.control-row input[type=number]{width:64px;background:#000;color:#eee;border:1px solid #444;padding:2px 4px;font-size:13px}.visuals{display:flex;flex-direction:column;gap:12px}</style>
+</head><body>
+
+<div class="visuals">
+  <canvas id="canvas" width="1000" height="700"></canvas>
+  <canvas id="scope" width="1000" height="120"></canvas>
+</div>
+
+<div class="controls">
+  <div class="control-row"><input type="checkbox" checked onchange="tM(this.checked)"><span>Sound ON</span></div>
+  <div class="control-row"><input type="radio" name="mode" value="hypo" checked onchange="oM(this)"><span>Hypotrochoid (Inner Gear)</span></div>
+  <div class="control-row"><input type="radio" name="mode" value="epi" onchange="oM(this)"><span>Epitrochoid (Outer Gear)</span></div>
+  <div class="control-row"><input type="checkbox" id="showGears" checked onchange="tG()"><span>Show gears</span></div>
+
+  <label>Outer Gear (R)<div class="control-row"><input id="R" type="range" min="50" max="250" value="180" oninput="sS('R')"><input id="R_val" type="number" min="50" max="250" value="180" oninput="sI('R')"></div></label>
+
+  <label>Inner Gear (r)<div class="control-row"><input id="r" type="range" min="10" max="150" value="60" oninput="sS('r')"><input id="r_val" type="number" min="10" max="150" value="60" oninput="sI('r')"></div></label>
+
+  <label>Pen location on gear (d)<div class="control-row"><input id="d" type="range" min="5" max="150" value="30" oninput="sS('d')"><input id="d_val" type="number" min="5" max="150" value="30" oninput="sI('d')"></div></label>
+
+  <label>Pen thickness<input id="penWidth" type="range" min="0.5" max="6" step="0.1" value="1.5" oninput="oPW()"></label>
+
+  <label>Draw Speed<input id="speed" type="range" min="0.2" max="5" step="0.1" value="1" oninput="oS()"></label>
+
+  <button onclick="stA()">Animate</button>
+  <button onclick="cC()" style="margin-top:8px;background:#555;color:#fff;">Clear</button>
+  <button onclick="eP()" style="margin-top:8px;">Save as PNG</button>
+  <button onclick="eJ()" style="margin-top:8px;">Save as JPG</button>
+  <button onclick="eV()" style="margin-top:8px;">Save as SVG</button>
+</div>
+
+<script>
+/* compact/obfuscated variant - same behavior, shorter names */
+const C=document.getElementById('canvas'),x=C.getContext('2d');
+const S=8000;let m='hypo',a=false,i=0,T=0;
+let P=new Path2D(),s=1,w=1.5,q=[];
+const pP=5,pD=4;
+let R,r,d,gS;
+
+/* audio */
+let A=null,MG=null,e=true;
+const CS=[1,1.125,1.25,1.5,1.667],ENV={attack:0.6,sustain:0.35,release:0.5},FE={base:600,peak:2800,attack:0.8};
+let o1=null,o2=null,o3=null,g1=null,g3=null,f1=null,subO=null,subG=null,an=null,ad=null,ast=0;
+
+function iA(){if(A)return;A=new(window.AudioContext||window.webkitAudioContext)();MG=A.createGain();MG.gain.value=0.5;an=A.createAnalyser();an.fftSize=2048;ad=new Uint8Array(an.fftSize);MG.connect(an);an.connect(A.destination);}
+function tM(v){e=!!v; if(e){iA();A.resume&&A.resume()}else stCS();}
+function sCS(){ if(!A)iA(); if(o1)return; const t=A.currentTime; o1=A.createOscillator();g1=A.createGain();f1=A.createBiquadFilter(); f1.frequency.setValueAtTime(FE.base,t); f1.frequency.linearRampToValueAtTime(FE.peak,t+FE.attack); o1.type='triangle'; f1.type='lowpass'; f1.Q.value=3.5; o1.connect(f1); f1.connect(g1); g1.connect(MG); g1.gain.setValueAtTime(0.05,t); g1.gain.linearRampToValueAtTime(ENV.sustain,t+ENV.attack); o1.start(t); o2=A.createOscillator();o2.type='triangle'; const g2=A.createGain(); g2.gain.value=0.35; o2.connect(g2); g2.connect(f1); o2.start(t); o3=A.createOscillator();o3.type='sine'; g3=A.createGain(); g3.gain.value=0.18; o3.connect(g3); g3.connect(f1); o3.start(t); subO=A.createOscillator(); subO.type='sine'; subG=A.createGain(); subG.gain.value=0.08; subO.connect(subG); subG.connect(MG); subO.start(t); const f0=220; o1.frequency.setValueAtTime(f0,t); o2.frequency.setValueAtTime(f0*1.01,t); o3.frequency.setValueAtTime(f0*1.5,t); subO.frequency.setValueAtTime(f0*0.5,t); }
+function stCS(){ if(!o1||!g1||!A)return; const t=A.currentTime; g1.gain.cancelScheduledValues(t); g1.gain.setTargetAtTime(0.0001,t,0.08); setTimeout(()=>{ if(o1){o1.stop();o1.disconnect();o1=null;} if(o2){o2.stop();o2.disconnect();o2=null;} if(o3){o3.stop();o3.disconnect();o3=null;} g3=null; g1=null; f1=null; },300); if(subO){subO.stop();subO.disconnect();subO=null;} subG=null; }
+
+/* UI handlers */
+function oM(r){ m=r.value; cC(); }
+function oS(){ s=Number(document.getElementById('speed').value); }
+function oPW(){ w=Number(document.getElementById('penWidth').value); cC(); }
+function gearTeeth(Rv,pp=pP){return Math.round((2*Math.PI*Rv)/pp)}
+function bounds(arr){let a=1e9,b=1e9,c=-1e9,d=-1e9; for(const p of arr){a=Math.min(a,p.x);b=Math.min(b,p.y);c=Math.max(c,p.x);d=Math.max(d,p.y);} return {minX:a,minY:b,maxX:c,maxY:d}}
+function GCD(a,b){return b===0?a:GCD(b,a%b)}
+function tG(){ gS=document.getElementById('showGears').checked; if(!a) dS(); }
+function onParam(){ a=false; i=0; q=[]; P=new Path2D(); if(e)stCS(); const rs=document.getElementById('r'),ds=document.getElementById('d'); ds.max=rs.value; if(Number(ds.value)>Number(rs.value)) ds.value=rs.value; dI(); }
+
+function stA(){
+  if(e){ iA(); A.resume&&A.resume(); }
+  R=Number(document.getElementById('R').value); r=Number(document.getElementById('r').value); d=Math.min(Number(document.getElementById('d').value),r);
+  gS=document.getElementById('showGears').checked;
+  P=new Path2D(); q=[];
+  const s0=cS(0); P.moveTo(s0.px,s0.py); q.push({x:s0.px,y:s0.py});
+  const g=GCD(R,r); T=2*Math.PI*(r/g);
+  i=0; a=true; ast = A ? A.currentTime : performance.now()/1000; if(e) sCS();
+  requestAnimationFrame(step);
+}
+
+function resetTF(){ x.setTransform(1,0,0,1,0,0); }
+
+function step(){
+  if(!a) return;
+  const b=10, norm=speedNorm(R,r), per=Math.max(1,Math.floor(b*s*norm));
+  resetTF(); x.clearRect(0,0,C.width,C.height); x.save(); x.translate(C.width/2,C.height/2); drawWM();
+  let L=null;
+  for(let k=0;k<per;k++){
+    if(i>=S){ a=false; if(e) stCS(); x.restore(); dS(); return; }
+    const t=T*i/S; L=cS(t); const px=L.px,py=L.py;
+    if(e&&o1){ const at=A.currentTime-ast; const tot=S/(60*s); const prog=Math.min(at/tot,1); const hue=prog*360; const phase=Math.sin((hue/360)*Math.PI); const idx=Math.floor(phase*CS.length); const ratio=CS[Math.min(idx,CS.length-1)]; const base=220; const oct=1+0.5*phase; const freq=base*ratio*oct; const vib=1+0.002*Math.sin(at*6); const ff=freq*vib; const tA=A.currentTime+0.02; o1.frequency.setTargetAtTime(ff,tA,0.05); o2.frequency.setTargetAtTime(ff*1.01,tA,0.05); o3.frequency.setTargetAtTime(ff*1.5,tA,0.05); subO.frequency.setTargetAtTime(ff*0.5,tA,0.1); const rad=Math.sqrt(px*px+py*py); const dyn=ENV.sustain+0.25*(rad/(R+r)); g1.gain.setTargetAtTime(dyn,tA,0.1); const cut=FE.base+phase*(FE.peak-FE.base)*0.6; f1.frequency.setTargetAtTime(cut,tA,0.08); }
+    if(i===0) P.moveTo(px,py); else P.lineTo(px,py);
+    q.push({x:px,y:py}); i++;
+  }
+  dG(q,w);
+  if(gS&&L){ const outer=gearTeeth(R); const inner=Math.round(outer*(r/R)); dGr(0,0,R+pD*0.6,outer,pD,0); dGr(L.cx,L.cy,r,inner,pD,L.gearRot); dPA(L.cx,L.cy,L.px,L.py); }
+  x.restore(); requestAnimationFrame(step);
+}
+
+/* sync UI */
+function sS(id){ const s=document.getElementById(id),v=document.getElementById(id+'_val'); v.value=s.value; applyC(); onParam(); }
+function sI(id){ const s=document.getElementById(id),v=document.getElementById(id+'_val'); let val=Number(v.value); val=Math.max(Number(s.min),Math.min(Number(s.max),val)); s.value=val; v.value=val; applyC(); onParam(); }
+function applyC(){ const rs=document.getElementById('r'), ds=document.getElementById('d'), di=document.getElementById('d_val'); ds.max=rs.value; di.max=rs.value; if(Number(ds.value)>Number(rs.value)){ ds.value=rs.value; di.value=rs.value;} }
+
+/* drawing helpers */
+function dPA(cx,cy,px,py){ x.beginPath(); x.moveTo(cx,cy); x.lineTo(px,py); x.save(); x.strokeStyle='#666'; x.lineWidth=1; x.stroke(); x.restore(); x.beginPath(); x.arc(px,py,4,0,Math.PI*2); x.fillStyle='red'; x.fill(); }
+function drawWM(){ x.save(); x.textAlign='center'; x.textBaseline='middle'; try{ const g=x.createLinearGradient(-150,0,150,0); for(let i=0;i<=1;i+=0.1) g.addColorStop(i, colAt(i)); x.fillStyle=g;}catch(e){ x.fillStyle='rgba(255,255,255,0.6)'; } x.globalAlpha=0.7; x.font='600 18px system-ui, -apple-system, Segoe UI, sans-serif'; const lh=22; x.fillText("Ani’s",0,-lh); x.fillText("Musical",0,0); x.fillText("Spirograph",0,lh); x.restore(); }
+function hsv2rgb(h,s,v){ let c=v*s,x=(c*(1-Math.abs(((h/60)%2)-1))),m=v-c; let r=0,g=0,b=0; if(h<60)[r,g,b]=[c,x,0];else if(h<120)[r,g,b]=[x,c,0];else if(h<180)[r,g,b]=[0,c,x];else if(h<240)[r,g,b]=[0,x,c];else if(h<300)[r,g,b]=[x,0,c];else [r,g,b]=[c,0,x]; return {r:Math.round((r+m)*255),g:Math.round((g+m)*255),b:Math.round((b+m)*255)} }
+function colAt(t){ const h=(t*360)%360; const rgb=hsv2rgb(h,0.95,0.95); return 'rgb('+rgb.r+','+rgb.g+','+rgb.b+')' }
+function scopeColor(){ if(!a||S===0) return 'rgba(180,180,180,0.6)'; return colAt(i/S); }
+function speedNorm(Rv,rv){ const r=(Rv/rv); return Math.max(0.25,Math.min(1,r)); }
+
+function dGr(cx,cy,rad,teeth,td,rot=0){ const step=(2*Math.PI)/teeth; x.beginPath(); for(let j=0;j<teeth;j++){ const ang=j*step+rot; const rO=rad+td, rI=rad-td*0.4; const x1=cx+rO*Math.cos(ang), y1=cy+rO*Math.sin(ang); const x2=cx+rI*Math.cos(ang+step/2), y2=cy+rI*Math.sin(ang+step/2); if(j===0) x.moveTo(x1,y1); else x.lineTo(x1,y1); x.lineTo(x2,y2); } x.closePath(); x.save(); x.lineWidth=1; x.strokeStyle='#ccc'; x.lineJoin='round'; x.stroke(); x.restore(); }
+
+function dI(){ R=Number(document.getElementById('R').value); r=Number(document.getElementById('r').value); d=Number(document.getElementById('d').value); gS=document.getElementById('showGears').checked; d=Math.min(d,r); document.getElementById('d').value=d; P=new Path2D(); q=[]; const s0=cS(0); P.moveTo(s0.px,s0.py); i=0; dS(); }
+
+function dS(){ resetTF(); x.clearRect(0,0,C.width,C.height); x.save(); x.translate(C.width/2,C.height/2); drawWM(); dG(q,w); let t=a?T*(i/S):(q.length>0?T:0); const st=cS(t); if(gS){ const out=gearTeeth(R); const inn=Math.round(out*(r/R)); dGr(0,0,R+pD*0.6,out,pD,0); dGr(st.cx,st.cy,r,inn,pD,st.gearRot); dPA(st.cx,st.cy,st.px,st.py);} x.restore(); }
+
+/* compute spiro state */
+function cS(t){ let cx,cy,px,py,gr,rr; if(m==='hypo'){ cx=(R-r)*Math.cos(t); cy=(R-r)*Math.sin(t); const ang=((R-r)/r)*t; px=cx+d*Math.cos(ang); py=cy-d*Math.sin(ang); const ot=gearTeeth(R); const it=Math.max(1,Math.round(ot*(r/R))); const roll=(ot/it)*t; gr=-roll; rr=0; }else{ cx=(R+r)*Math.cos(t); cy=(R+r)*Math.sin(t); const ang=((R+r)/r)*t; px=cx-d*Math.cos(ang); py=cy+d*Math.sin(ang); gr=-ang; rr=t; } return {cx,cy,px,py,gearRot:gr,ringRot:rr}; }
+
+function dG(arr,lw){ if(arr.length<2) return; x.lineCap='round'; x.lineJoin='round'; const tot=arr.length-1; x.lineWidth=lw; for(let i0=0;i0<tot;i0++){ const p0=arr[i0],p1=arr[i0+1],t=i0/tot; x.strokeStyle=colAt(t); x.beginPath(); x.moveTo(p0.x,p0.y); x.lineTo(p1.x,p1.y); x.stroke(); } }
+
+/* oscilloscope */
+const SC=document.getElementById('scope'),sx=SC.getContext('2d');
+function dSc(){ sx.clearRect(0,0,SC.width,SC.height); sx.beginPath(); sx.strokeStyle='rgba(255,255,255,0.15)'; sx.lineWidth=5; sx.moveTo(0,SC.height/2); sx.lineTo(SC.width,SC.height/2); sx.stroke(); if(!an) return; an.getByteTimeDomainData(ad); sx.beginPath(); sx.lineWidth=2; sx.strokeStyle=scopeColor(); const slice=SC.width/ad.length; let X=0; for(let i2=0;i2<ad.length;i2++){ const v=ad[i2]/128.0; const y=(v*SC.height)/2; if(i2===0) sx.moveTo(X,y); else sx.lineTo(X,y); X+=slice; } sx.stroke(); }
+function sL(){ dSc(); requestAnimationFrame(sL); }
+iA(); sL();
+
+/* exports */
+function eP(){ if(q.length<2){alert('Nothing to export. Please run Animate first.');return} const b=bounds(q),pad=20,wid=b.maxX-b.minX,hei=b.maxY-b.minY,sc=Math.min((C.width-pad*2)/wid,(C.height-pad*2)/hei); x.clearRect(0,0,C.width,C.height); x.save(); x.translate(C.width/2,C.height/2); x.scale(sc,sc); x.translate(-(b.minX+b.maxX)/2,-(b.minY+b.maxY)/2); drawWM(); x.lineWidth=w/sc; x.strokeStyle='#fff'; dG(q,w/sc); x.restore(); const aLink=document.createElement('a'); aLink.download='spirograph.png'; aLink.href=C.toDataURL('image/png'); aLink.click(); dS(); }
+function eJ(){ if(q.length<2){alert('Nothing to export. Please run Animate first.');return} const b=bounds(q),pad=20,wid=b.maxX-b.minX,hei=b.maxY-b.minY,sc=Math.min((C.width-pad*2)/wid,(C.height-pad*2)/hei); x.clearRect(0,0,C.width,C.height); x.save(); x.translate(C.width/2,C.height/2); x.scale(sc,sc); x.translate(-(b.minX+b.maxX)/2,-(b.minY+b.maxY)/2); drawWM(); x.lineWidth=w/sc; x.strokeStyle='#fff'; dG(q,w/sc); x.restore(); const L=document.createElement('a'); L.download='spirograph.jpg'; L.href=C.toDataURL('image/jpeg',0.95); L.click(); dS(); }
+function eV(){ if(q.length<2){alert('Nothing to export. Please run Animate first.');return} let svgPath=''; for(let i3=0;i3<q.length;i3++){ const p=q[i3]; svgPath += (i3===0?'M ':'L ') + p.x + ' ' + p.y + ' '; } const ext=R+r+d+10; const svg = `\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="${-ext} ${-ext} ${2*ext} ${2*ext}">\n  <defs>\n    <linearGradient id="wmGradient" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="rgb(80,160,255)"/><stop offset="50%" stop-color="rgb(180,80,220)"/><stop offset="100%" stop-color="rgb(255,80,120)"/></linearGradient>\n  </defs>\n  <text x="0" y="-12" text-anchor="middle" font-size="14" font-family="system-ui, sans-serif" fill="url(#wmGradient)" opacity="0.6">Ani’s</text>\n  <text x="0" y="4" text-anchor="middle" font-size="14" font-family="system-ui, sans-serif" fill="url(#wmGradient)" opacity="0.6">Musical</text>\n  <text x="0" y="20" text-anchor="middle" font-size="14" font-family="system-ui, sans-serif" fill="url(#wmGradient)" opacity="0.6">Spirograph</text>\n  <path d="${svgPath}" fill="none" stroke="black" stroke-width="${w}" />\n</svg>\n`; const blob=new Blob([svg],{type:'image/svg+xml'}); const url=URL.createObjectURL(blob); const aLink=document.createElement('a'); aLink.href=url; aLink.download='spirograph.svg'; aLink.click(); }
+
+function cC(){ resetTF(); q=[]; if(e) stCS(); i=0; a=false; P=new Path2D(); dI(); }
+
+/* initialize side values and idle view */
+['R','r','d'].forEach(id=>{document.getElementById(id+'_val').value=document.getElementById(id).value});
+dI();
+</script>
+
+</body></html>
