@@ -1,8 +1,20 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"/><title>Ani's Musical Spirograph</title>
-<style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#111;color:#eee;display:flex;gap:20px;padding:20px}canvas{background:#000;flex-shrink:0}.controls{min-width:220px}label{display:block;margin-top:12px;font-size:14px}input{width:100%}button{margin-top:16px;width:100%;padding:8px;background:#4caf50;border:none;color:black;font-weight:700;cursor:pointer}.control-row{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:14px}.control-row input[type=radio],.control-row input[type=checkbox]{width:auto;margin:0}.control-row input[type=number]{width:64px;background:#000;color:#eee;border:1px solid #444;padding:2px 4px;font-size:13px}.visuals{display:flex;flex-direction:column;gap:12px}</style>
+<style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#111;color:#eee;display:flex;gap:20px;padding:20px}canvas{background:#000;flex-shrink:0}.controls{min-width:220px}label{display:block;margin-top:12px;font-size:14px}input{width:100%}button{margin-top:16px;width:100%;padding:8px;background:#4caf50;border:none;color:black;font-weight:700;cursor:pointer}.control-row{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:14px}.control-row input[type=radio],.control-row input[type=checkbox]{width:auto;margin:0}.control-row input[type=number]{width:64px;background:#000;color:#eee;border:1px solid #444;padding:2px 4px;font-size:13px}.visuals{display:flex;flex-direction:column;gap:12px}.fullscreen-hint{
+  width:100%;
+  text-align:center;
+  font-size:14px;
+  letter-spacing:0.4px;
+  color:#bbb;
+  background:linear-gradient(90deg,#222,#111,#222);
+  padding:8px 0;
+  border-bottom:1px solid #333;
+}</style>
 </head><body>
-Please use the page in full screen!
+<div class="fullscreen-hint">
+  Please view the webpage in fullscreen
+</div>
+
 <div class="visuals">
   <canvas id="canvas" width="1000" height="700"></canvas>
   <canvas id="scope" width="1000" height="120"></canvas>
